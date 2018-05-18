@@ -73,14 +73,9 @@ export class TestService {
 }
 ```
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://opencollective.com/nest).
-
 ## Stay in touch
 
 - Author - [Miaowing](https://github.com/miaowing)
-- Website - [https://nestjs.com](https://nestjs.com/)
 
 ## License
 

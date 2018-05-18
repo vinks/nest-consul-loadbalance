@@ -2,19 +2,20 @@ import * as LoadbalanceClient from 'loadbalance-client';
 import * as Consul from 'consul';
 
 export interface Callbacks {
-  preSend: (request: object) => void;
-  postSend: (err: Error, response: object) => void;
+  preSend?: (request: object) => void;
+  postSend?: (err: Error, response: object) => void;
 }
 
 export class Loadbalance {
   private readonly callbacks: Callbacks;
   private readonly consul: Consul;
+  private readonly clientCache: object;
   private services: object[];
-  private clientCache: object;
 
   constructor(consul: Consul, callbacks: Callbacks) {
     this.consul = consul;
     this.callbacks = callbacks;
+    this.clientCache = {};
   }
 
   get(service: string, force?: boolean, options?: object) {
@@ -38,10 +39,10 @@ export class Loadbalance {
     options: object = { request: { forever: true } },
   ) {
     const lbClient = new LoadbalanceClient(service, this.consul, options);
-    if (typeof this.callbacks.preSend === 'function') {
+    if (this.callbacks && typeof this.callbacks.preSend === 'function') {
       lbClient.onPreSend(this.callbacks.preSend);
     }
-    if (typeof this.callbacks.postSend === 'function') {
+    if (this.callbacks && typeof this.callbacks.postSend === 'function') {
       lbClient.onPostSend(this.callbacks.postSend);
     }
 

@@ -1,6 +1,6 @@
 {
   "name": "nest-consul-loadbalance",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "description": "Nest - modern, fast, powerful node.js web framework (@nest-consul-loadbalance)",
   "author": "Miaowing <i@zfeng.net>",
   "license": "MIT",
@@ -20,6 +20,7 @@
     "husky": "^0.14.3",
     "lint-staged": "^7.0.0",
     "nest-bootstrap": "0.0.3",
+    "nest-consul": "0.0.6",
     "prettier": "^1.11.1",
     "ts-node": "^3.3.0",
     "typescript": "^2.8.0"

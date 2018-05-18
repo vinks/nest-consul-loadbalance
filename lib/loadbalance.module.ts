@@ -5,7 +5,7 @@ import { Loadbalance, Callbacks } from './loadbalance.class';
 @Global()
 @Module({})
 export class LoadbalanceModule {
-  static forRoot(options: Callbacks): DynamicModule {
+  static forRoot(options?: Callbacks): DynamicModule {
     const loadbalanceProvider = {
       provide: 'LoadbalanceClient',
       useFactory: (consul: Consul): Loadbalance => {
