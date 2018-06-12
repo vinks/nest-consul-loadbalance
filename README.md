@@ -46,14 +46,55 @@ import { LoadbalanceModule } from 'nest-consul-loadbalance';
 
 @Module({
   imports: [
-      ConsulModule.forRoot({
+      ConsulModule.init({
         host: '127.0.0.1',
         port: 8500
       }),
-      LoadbalanceModule.forRoot({preSend: requst => {}, postSend: (err, response) => {}})
+      LoadbalanceModule.init({
+        preSend: requst => {}, 
+        postSend: (err, response) => {},
+        strategy: 'random',
+        request: {forever: true}
+      })
   ],
 })
 export class ApplicationModule {}
+```
+
+If you use [nest-boot](https://github.com/miaowing/nest-boot) module.
+
+```typescript
+import { Module } from '@nestjs/common';
+import { ConsulModule } from 'nest-consul';
+import { LoadbalanceModule } from 'nest-consul-loadbalance';
+import { BootModule } from 'nest-boot';
+
+@Module({
+  imports: [
+      ConsulModule.initWithBoot({
+        path: 'consul'
+      }),
+      BootModule.forRoot(__dirname, 'bootstrap.yml'),
+      LoadbalanceModule.initWithBoot({
+        preSend: requst => {}, 
+        postSend: (err, response) => {},
+        path: 'loadbalance'
+      })
+  ],
+})
+export class ApplicationModule {}
+```
+
+##### bootstrap.yml
+
+```yaml
+consul:
+  host: localhost
+  port: 8500
+loadbalance:
+  strategy: random
+  request:
+    forever: true
 ```
 
 #### Consul Service Injection

@@ -1,5 +1,6 @@
 import * as LoadbalanceClient from 'loadbalance-client';
 import * as Consul from 'consul';
+import { Options } from './loadbalance.options';
 
 export interface Callbacks {
   preSend?: (request: object) => void;
@@ -11,18 +12,22 @@ export class Loadbalance {
   private readonly consul: Consul;
   private readonly clientCache: object;
   private services: object[];
+  private readonly options: Options;
 
-  constructor(consul: Consul, callbacks: Callbacks) {
+  constructor(consul: Consul, options: Options) {
     this.consul = consul;
-    this.callbacks = callbacks;
+    this.callbacks = options;
     this.clientCache = {};
+    this.options = { strategy: options.strategy, request: options.request };
   }
 
   get(service: string, force?: boolean, options?: object) {
+    let opts = { request: { forever: true } };
+    Object.assign(opts, options, this.options);
     if (this.clientCache[service] && !force) {
       return this.clientCache[service];
     } else {
-      return (this.clientCache[service] = this.getClient(service, options));
+      return (this.clientCache[service] = this.getClient(service, opts));
     }
   }
 
@@ -34,10 +39,7 @@ export class Loadbalance {
     return this.get(service, false).send(request);
   }
 
-  private getClient(
-    service: string,
-    options: object = { request: { forever: true } },
-  ) {
+  private getClient(service: string, options: object) {
     const lbClient = new LoadbalanceClient(service, this.consul, options);
     if (this.callbacks && typeof this.callbacks.preSend === 'function') {
       lbClient.onPreSend(this.callbacks.preSend);
