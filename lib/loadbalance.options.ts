@@ -9,6 +9,6 @@ export interface Options {
 
 export interface BootOptions {
   preSend?: (request: any) => void;
-  postSend?: (err: Error, response: any) => void;
+  postSend?: (err: any, response: any, request: any) => void;
   path: string;
 }
