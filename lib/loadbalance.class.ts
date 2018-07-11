@@ -39,6 +39,10 @@ export class Loadbalance {
     return this.get(service, false).send(request);
   }
 
+  upload(service: string, request: object) {
+    return this.get(service, false).upload(request);
+  }
+
   private getClient(service: string, options: object) {
     const lbClient = new LoadbalanceClient(service, this.consul, options);
     if (this.callbacks && typeof this.callbacks.preSend === 'function') {
