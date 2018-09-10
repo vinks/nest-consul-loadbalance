@@ -1,8 +1,8 @@
-import { Loadbalancer } from '../loadbalancer';
-import { Server } from '../server';
+import { ILoadbalancer } from "../loadbalancer.interface";
+import { Server } from "../server";
 
-export interface Rule {
-  init(loadbalancer: Loadbalancer);
+export interface IRule {
+    init(loadbalancer: ILoadbalancer);
 
-  choose(): Server;
+    choose(): Server;
 }

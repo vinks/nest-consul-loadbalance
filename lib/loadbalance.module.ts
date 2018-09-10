@@ -2,50 +2,44 @@ import { Module, DynamicModule, Global } from '@nestjs/common';
 import * as Consul from 'consul';
 import { Loadbalance } from './loadbalance';
 import { Options } from './loadbalance.options';
-import { Boot } from 'nest-boot';
-import { ConsulConfig } from 'nest-consul-config';
+import {
+    BOOT_ADAPTER,
+    BOOTSTRAP_PROVIDER, CONSUL_ADAPTER,
+    CONSUL_CONFIG_PROVIDER,
+    CONSUL_PROVIDER,
+    LOADBALANCE_PROVIDER
+} from "./constants";
+import { IBoot } from "./boot.interface";
 
 @Global()
 @Module({})
 export class LoadbalanceModule {
-  static register(options?: Options): DynamicModule {
-    const inject = ['ConsulClient'];
-    if (options.adapter === 'boot') {
-      inject.push('BootstrapProvider');
-    } else if (options.adapter === 'consul') {
-      inject.push('ConsulConfigClient');
+    static register(options?: Options): DynamicModule {
+        const inject = [CONSUL_PROVIDER];
+        if (options.adapter === BOOT_ADAPTER) {
+            inject.push(BOOTSTRAP_PROVIDER);
+        } else if (options.adapter === CONSUL_ADAPTER) {
+            inject.push(CONSUL_CONFIG_PROVIDER);
+        }
+
+        const loadbalanceProvider = {
+            provide: LOADBALANCE_PROVIDER,
+            useFactory: async (consul: Consul, boot: IBoot): Promise<Loadbalance> => {
+                const loadbalance = new Loadbalance(consul);
+                const rules = (
+                    options.adapter === 'boot' ? boot.get('loadbalance.rules') :
+                        options.adapter === 'consul' ? (await boot.get('loadbalance.rules')
+                        ) : options.rules) || [];
+                await loadbalance.init(rules, options.ruleCls);
+                return loadbalance;
+            },
+            inject,
+        };
+
+        return {
+            module: LoadbalanceModule,
+            components: [loadbalanceProvider],
+            exports: [loadbalanceProvider],
+        };
     }
-
-    const loadbalanceProvider = {
-      provide: 'LoadbalanceClient',
-      useFactory: async (
-        consul: Consul,
-        boot: Boot | ConsulConfig,
-      ): Promise<Loadbalance> => {
-        const loadbalance = new Loadbalance(consul);
-        const rules =
-          (options.adapter === 'boot'
-            ? boot.get('loadbalance.rules')
-            : options.adapter === 'consul'
-              ? await boot.get('loadbalance.rules')
-              : options.rules) || [];
-
-        await Promise.all(
-          rules.map(async rule => {
-            try {
-              await loadbalance.addService(rule.service, rule.ruleCls);
-            } catch (e) {}
-          }),
-        );
-        return loadbalance;
-      },
-      inject,
-    };
-
-    return {
-      module: LoadbalanceModule,
-      components: [loadbalanceProvider],
-      exports: [loadbalanceProvider],
-    };
-  }
 }

@@ -32,7 +32,7 @@ This is a [Nest](https://github.com/nestjs/nest) module for getting service from
 ## Installation
 
 ```bash
-$ npm i --save nest-consul nest-consul-loadbalance
+$ npm i --save nest-consul consul nest-consul-loadbalance
 ```
 
 ## Quick Start
@@ -65,15 +65,15 @@ If you use [nest-boot](https://github.com/miaowing/nest-boot) module.
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { ConsulModule } from 'nest-consul';
+import { ConsulModule, CONSUL_ADAPTER } from 'nest-consul';
 import { LoadbalanceModule } from 'nest-consul-loadbalance';
-import { BootModule } from 'nest-boot';
+import { BootModule, BOOT_ADAPTER } from 'nest-boot';
 
 @Module({
   imports: [
-      ConsulModule.register({adapter: 'boot'}),
+      ConsulModule.register({adapter: BOOT_ADAPTER}),
       BootModule.register(__dirname, 'bootstrap.yml'),
-      LoadbalanceModule.register({adapter: 'nest'})
+      LoadbalanceModule.register({adapter: BOOT_ADAPTER})
   ],
 })
 export class ApplicationModule {}

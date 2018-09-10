@@ -1,9 +1,10 @@
 export interface Options {
-  adapter?: string;
-  rules?: RuleOptions[];
+    adapter?: string;
+    ruleCls?: any;
+    rules?: RuleOptions[];
 }
 
 export interface RuleOptions {
-  service: string;
-  ruleCls: any;
+    service: string;
+    ruleCls: any;
 }

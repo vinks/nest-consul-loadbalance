@@ -1,38 +1,33 @@
-import { HttpService, HttpException } from '@nestjs/common';
-import { AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Loadbalancer } from './loadbalancer';
-import { ServerCriticalException } from './exceptions/ServerCriticalException';
+import { HttpException } from '@nestjs/common';
+import { AxiosRequestConfig, AxiosResponse, AxiosInstance } from 'axios';
+import { ServerCriticalException } from "./exceptions/ServerCriticalException";
+import { Server } from "./server";
 
 export class HttpDelegate {
-  constructor(private readonly loadbalancer: Loadbalancer) {}
+    constructor(
+        private readonly server: Server
+    ) {
+    }
 
-  async send(
-    http: HttpService,
-    config: AxiosRequestConfig,
-  ): Promise<AxiosResponse> {
-    const server = this.loadbalancer.chooseService();
-    config.url = `http://${server.address}:${server.port}${config.url}`;
-    server.state.incrementServerActiveRequests();
-    server.state.incrementTotalRequests();
+    async send(http: AxiosInstance, config: AxiosRequestConfig): Promise<AxiosResponse> {
+        config.url = `http://${this.server.address}:${this.server.port}${config.url}`;
+        this.server.state.incrementServerActiveRequests();
+        this.server.state.incrementTotalRequests();
 
-    return await new Promise<AxiosResponse>(async (resolve, reject) => {
-      const observer = await http.request(config);
-      observer.subscribe(
-        response => {
-          resolve(response);
-        },
-        e => {
-          if (e.response) {
-            reject(new HttpException(e.response, e.statusCode));
-          } else if (e.request) {
-            reject(new HttpException(e.request.message, 400));
-          } else {
-            server.state.incrementServerFailureCounts();
-            reject(new ServerCriticalException(e.message));
-          }
-        },
-        () => server.state.decrementServerActiveRequests(),
-      );
-    });
-  }
+        try {
+            const response = await http.request(config);
+            this.server.state.decrementServerActiveRequests();
+            return response;
+        } catch (e) {
+            this.server.state.decrementServerActiveRequests();
+            if (e.response) {
+                throw new HttpException(e.response, e.statusCode);
+            } else if (e.request) {
+                throw new HttpException(e.request.message, 400);
+            } else {
+                this.server.state.incrementServerFailureCounts();
+                throw new ServerCriticalException(e.message);
+            }
+        }
+    }
 }
