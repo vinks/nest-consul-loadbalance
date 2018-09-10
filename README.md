@@ -46,15 +46,15 @@ import { LoadbalanceModule } from 'nest-consul-loadbalance';
 
 @Module({
   imports: [
-      ConsulModule.init({
+      ConsulModule.register({
         host: '127.0.0.1',
         port: 8500
       }),
-      LoadbalanceModule.init({
-        preSend: requst => {}, 
-        postSend: (err, response) => {},
-        strategy: 'random',
-        request: {forever: true}
+      LoadbalanceModule.register({
+        rules: [
+            {service: 'test-service', ruleCls: 'RandomRule'},
+            {service: 'user-service', ruleCls: '../rules/CustomRule'}
+        ]
       })
   ],
 })
@@ -71,15 +71,9 @@ import { BootModule } from 'nest-boot';
 
 @Module({
   imports: [
-      ConsulModule.initWithBoot({
-        path: 'consul'
-      }),
-      BootModule.forRoot(__dirname, 'bootstrap.yml'),
-      LoadbalanceModule.initWithBoot({
-        preSend: requst => {}, 
-        postSend: (err, response) => {},
-        path: 'loadbalance'
-      })
+      ConsulModule.register({adapter: 'boot'}),
+      BootModule.register(__dirname, 'bootstrap.yml'),
+      LoadbalanceModule.register({adapter: 'nest'})
   ],
 })
 export class ApplicationModule {}
@@ -92,9 +86,9 @@ consul:
   host: localhost
   port: 8500
 loadbalance:
-  strategy: random
-  request:
-    forever: true
+  rules:
+    - {service: 'test-service', ruleCls: 'RandomRule'}
+    - {service: 'user-service', ruleCls: '../rules/CustomRule'}
 ```
 
 #### Consul Service Injection
@@ -107,10 +101,28 @@ import { InjectLoadbalancee, Loadbalance } from 'nest-consul-loadbalance';
 export class TestService {
   constructor(@InjectLoadbalancee() private readonly lb: Loadbalance) {}
 
-  async sendRequest(request: object) {
-      const response = await this.lb.get('user-service').get(request);
-      console.log(response);
+  async chooseOneNode() {
+      const node = this.lb.choose('user-service');
   }
+}
+```
+
+### Custom Loadbalance Rule
+
+```typescript
+import { Rule, Loadbalancer } from 'nest-consul-loadbalance';
+
+export class CustomRule implements Rule {
+    private loadbalancer: Loadbalancer;
+    
+    init(loadbalancer: Loadbalancer) {
+        this.loadbalancer = loadbalancer;
+    }
+
+    choose() {
+        const servers = this.loadbalancer.servers;
+        return servers[0];
+    }
 }
 ```
 

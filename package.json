@@ -1,6 +1,6 @@
 {
   "name": "nest-consul-loadbalance",
-  "version": "1.1.0",
+  "version": "3.0.0",
   "description": "Nest - modern, fast, powerful node.js web framework (@nest-consul-loadbalance)",
   "author": "Miaowing <i@zfeng.net>",
   "license": "MIT",
@@ -21,6 +21,7 @@
     "lint-staged": "^7.0.0",
     "nest-boot": "^0.1.1",
     "nest-consul": "0.0.6",
+    "nest-consul-config": "^1.1.0",
     "prettier": "^1.11.1",
     "ts-node": "^3.3.0",
     "typescript": "^2.8.0"
@@ -43,6 +44,7 @@
     "@types/lodash": "^4.14.108",
     "blueimp-md5": "^2.10.0",
     "loadbalance-client": "^0.2.0",
+    "random-js": "^1.0.8",
     "yamljs": "^0.3.0"
   }
 }

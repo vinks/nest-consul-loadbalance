@@ -1,37 +1,45 @@
 import { Module, DynamicModule, Global } from '@nestjs/common';
 import * as Consul from 'consul';
-import { Loadbalance, Callbacks } from './loadbalance.class';
-import { Options, BootOptions } from './loadbalance.options';
+import { Loadbalance } from './loadbalance';
+import { Options } from './loadbalance.options';
 import { Boot } from 'nest-boot';
+import { ConsulConfig } from 'nest-consul-config';
 
 @Global()
 @Module({})
 export class LoadbalanceModule {
-  static init(options?: Options): DynamicModule {
+  static register(options?: Options): DynamicModule {
+    const inject = ['ConsulClient'];
+    if (options.adapter === 'boot') {
+      inject.push('BootstrapProvider');
+    } else if (options.adapter === 'consul') {
+      inject.push('ConsulConfigClient');
+    }
+
     const loadbalanceProvider = {
       provide: 'LoadbalanceClient',
-      useFactory: (consul: Consul): Loadbalance => {
-        return new Loadbalance(consul, options);
-      },
-      inject: ['ConsulClient'],
-    };
+      useFactory: async (
+        consul: Consul,
+        boot: Boot | ConsulConfig,
+      ): Promise<Loadbalance> => {
+        const loadbalance = new Loadbalance(consul);
+        const rules =
+          (options.adapter === 'boot'
+            ? boot.get('loadbalance.rules')
+            : options.adapter === 'consul'
+              ? await boot.get('loadbalance.rules')
+              : options.rules) || [];
 
-    return {
-      module: LoadbalanceModule,
-      components: [loadbalanceProvider],
-      exports: [loadbalanceProvider],
-    };
-  }
-
-  static initWithBoot(options?: BootOptions): DynamicModule {
-    const loadbalanceProvider = {
-      provide: 'LoadbalanceClient',
-      useFactory: (boot: Boot, consul: Consul): Loadbalance => {
-        const opts = boot.get(options.path) || {};
-        Object.assign(opts, options);
-        return new Loadbalance(consul, opts);
+        await Promise.all(
+          rules.map(async rule => {
+            try {
+              await loadbalance.addService(rule.service, rule.ruleCls);
+            } catch (e) {}
+          }),
+        );
+        return loadbalance;
       },
-      inject: ['BootstrapProvider', 'ConsulClient'],
+      inject,
     };
 
     return {
