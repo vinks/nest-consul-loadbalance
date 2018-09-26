@@ -21,7 +21,7 @@ export class HttpDelegate {
         } catch (e) {
             this.server.state.decrementServerActiveRequests();
             if (e.response) {
-                throw new HttpException(e.response, e.statusCode);
+                throw new HttpException(e.response.data, e.statusCode);
             } else if (e.request) {
                 throw new HttpException(e.request.message, 400);
             } else {
