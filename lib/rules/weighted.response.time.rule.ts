@@ -11,7 +11,7 @@ export class WeightedResponseTimeRule extends RoundRobinRule {
         let server = null;
 
         while (server === null && count++ < 10) {
-            const reachableServers = this.loadbalancer.servers;
+            const reachableServers = this.loadbalancer.servers.filter(server => server.state.isAlive());
             const allServers = this.loadbalancer.servers;
             const upCount = reachableServers.length;
             const serverCount = allServers.length;

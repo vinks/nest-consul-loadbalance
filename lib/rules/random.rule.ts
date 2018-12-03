@@ -15,7 +15,7 @@ export class RandomRule implements IRule {
         let server = null;
 
         while (server === null) {
-            const reachableServers = this.loadbalancer.servers;
+            const reachableServers = this.loadbalancer.servers.filter(server => server.state.isAlive());
             const allServers = this.loadbalancer.servers;
             const upCount = reachableServers.length;
             const serverCount = allServers.length;

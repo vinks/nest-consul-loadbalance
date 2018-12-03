@@ -23,7 +23,7 @@ export class HttpDelegate {
             if (e.response) {
                 throw new HttpException(e.response.data, e.statusCode);
             } else if (e.request) {
-                throw new HttpException(e.request.message, 400);
+                throw new HttpException(e.message, 400);
             } else {
                 this.server.state.incrementServerFailureCounts();
                 throw new ServerCriticalException(e.message);
