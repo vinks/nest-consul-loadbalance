@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import * as Random from 'random-js';
 import { IRule } from "./rule.interface";
 import { ILoadbalancer } from "../loadbalancer.interface";
@@ -31,7 +32,7 @@ export class RandomRule implements IRule {
                 continue;
             }
 
-            if (server.state.isAlive()) {
+            if (get(server, 'state') && server.state.isAlive()) {
                 return server;
             }
 

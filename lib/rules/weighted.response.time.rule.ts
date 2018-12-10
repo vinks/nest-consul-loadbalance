@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import { RoundRobinRule } from "./round.robin.rule";
 import { Server } from "../server";
 
@@ -31,7 +32,7 @@ export class WeightedResponseTimeRule extends RoundRobinRule {
                 continue;
             }
 
-            if (server.state.isAlive()) {
+            if (get(server, 'state') && server.state.isAlive()) {
                 return server;
             }
 

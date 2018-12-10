@@ -1,3 +1,4 @@
+import { get } from 'lodash';
 import { IRule } from "./rule.interface";
 import { ILoadbalancer } from "../loadbalancer.interface";
 import { Server } from "../server";
@@ -30,7 +31,7 @@ export class RoundRobinRule implements IRule {
                 continue;
             }
 
-            if (server.state.isAlive()) {
+            if (get(server, 'state') && server.state.isAlive()) {
                 return server;
             }
 
