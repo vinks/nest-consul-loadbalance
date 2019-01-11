@@ -1,6 +1,6 @@
 {
   "name": "nest-consul-loadbalance",
-  "version": "3.3.2",
+  "version": "3.4.0",
   "description": "A Nest framework (node.js) module for getting service from consul and sending http request by loadbalance.",
   "author": "Miaowing <i@zfeng.net>",
   "license": "MIT",
@@ -23,6 +23,7 @@
     "@nestjs/common": "^5.4.0",
     "@types/node": "^7.0.41",
     "husky": "^0.14.3",
+    "axios": "^0.18.0",
     "lint-staged": "^7.0.0",
     "prettier": "^1.11.1",
     "ts-node": "^3.3.0",
@@ -39,7 +40,7 @@
   "dependencies": {
     "@types/lodash": "^4.14.108",
     "blueimp-md5": "^2.10.0",
-    "nest-consul-service": "^2.4.0",
+    "nest-consul-service": "^2.8.0",
     "random-js": "^1.0.8",
     "yamljs": "^0.3.0"
   }

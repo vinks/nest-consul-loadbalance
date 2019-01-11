@@ -18,13 +18,17 @@ export class Loadbalance {
     async init(rules: RuleOptions[], globalRuleCls) {
         this.rules = rules;
         this.globalRuleCls = globalRuleCls;
-        await this.updateServices();
+
+        const services = await this.service.getAllServices();
+        await this.updateServices(services);
+
+        this.service.onServiceListChange(async services => await this.updateServices(services))
     }
 
     chooseLoadbalancer(serviceName: string) {
         const loadbalancer = this.loadbalancers[serviceName];
         if (!loadbalancer) {
-            throw new Error(`The service ${serviceName} is not exist`);
+            throw new Error(`The service ${ serviceName } is not exist`);
         }
         return loadbalancer;
     }
@@ -32,13 +36,12 @@ export class Loadbalance {
     choose(serviceName: string) {
         const loadbalancer = this.loadbalancers[serviceName];
         if (!loadbalancer) {
-            throw new Error(`The service ${serviceName} is not exist`);
+            throw new Error(`The service ${ serviceName } is not exist`);
         }
         return loadbalancer.chooseService();
     }
 
-    private async updateServices() {
-        const services = await this.service.getAllServices();
+    private async updateServices(services) {
         const ruleMap = keyBy(this.rules, 'service');
         for (const serviceId in services) {
             if (services.hasOwnProperty(serviceId)) {
@@ -58,7 +61,7 @@ export class Loadbalance {
     }
 
     private createServiceWatcher(serviceName, ruleCls) {
-        this.service.onUpdate(serviceName, nodes => this.createLoadbalancer(serviceName, nodes, ruleCls));
+        this.service.onServiceChange(serviceName, nodes => this.createLoadbalancer(serviceName, nodes, ruleCls));
     }
 
     private createLoadbalancer(serviceName, nodes, ruleCls) {
